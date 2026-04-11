@@ -1,1 +1,71 @@
+The implemented model is a decoder-only Transformer (GPT-style language model) structurally identical to Karpathy’s reference implementation. It consists of stacked multi-head causal self-attention blocks, feedforward networks, residual connections, and embedding layers, trained using next-token prediction with cross-entropy loss. The primary enhancement over the baseline implementation is the use of temperature scaling and top-k sampling during inference, which improves generation stability and reduces sampling noise, resulting in higher-quality and more coherent text outputs.
 
+The architecture follows the standard GPT paradigm:
+“Predict next token using only past context via causal self-attention.”
+MODEL JUSTIFICATION REPORT
+
+1.Overview
+
+The implemented model is a decoder-only Transformer language model based on the GPT architecture. It is inspired by Andrej Karpathy’s minimal GPT implementation and is designed for character-level autoregressive language modeling. The model learns to predict the next character in a sequence given all previous characters, following the standard next-token prediction paradigm used in GPT-style models.
+
+2.Core Architecture
+
+The model consists of the following components:
+
+2.1 Token Embedding Layer
+
+The input consists of integer-encoded characters from a fixed vocabulary. Each token is mapped to a dense vector representation using a learned embedding table. This transforms discrete tokens into continuous vector space representations suitable for neural network processing.
+
+2.2 Positional Embedding Layer
+
+Since the Transformer architecture does not inherently encode sequence order, positional embeddings are added to token embeddings. These embeddings provide information about the position of each token in the sequence, allowing the model to distinguish between identical tokens appearing at different positions.
+
+The final input representation is obtained by summing token embeddings and positional embeddings.
+
+2.3 Transformer Blocks
+
+The model uses a stack of identical Transformer blocks. Each block consists of:
+
+(a) Layer Normalization
+
+Layer normalization is applied before both the attention and feedforward sublayers. This stabilizes training and improves gradient flow.
+
+(b) Multi-Head Self-Attention
+
+Each block contains multi-head causal self-attention. This mechanism allows each token to attend to all previous tokens in the sequence while preventing access to future tokens through a causal mask.
+
+Each attention head computes queries, keys, and values through learned linear transformations. Attention weights are computed using scaled dot-product attention, followed by a softmax operation. The output is a weighted sum of value vectors.
+
+Multiple attention heads operate in parallel, allowing the model to capture different types of dependencies in the input sequence.
+
+(c) Feedforward Network
+
+Each transformer block includes a position-wise feedforward neural network. This consists of two linear layers with a ReLU activation in between. The hidden dimension is expanded and then projected back to the original embedding dimension. This adds non-linearity and increases model capacity.
+
+(d) Residual Connections
+
+Residual connections are applied around both the attention and feedforward sublayers. These connections help preserve information, improve gradient flow, and stabilize training in deep networks.
+
+2.4 Final Layer Normalization
+
+After passing through all transformer blocks, a final layer normalization is applied to the hidden representations before projection to vocabulary logits.
+
+2.5 Language Modeling Head
+
+A final linear layer maps hidden states to logits over the vocabulary. These logits represent the unnormalized probabilities of the next token in the sequence.
+
+3.Training Objective
+
+The model is trained using cross-entropy loss applied to next-token prediction. For each position in the input sequence, the model predicts the probability distribution of the next token. The objective is to maximize the likelihood of the correct next token across the dataset.
+
+4.Generation Strategy
+
+The generation procedure differs from the original Karpathy implementation in the following ways:
+
+4.1 Temperature Scaling
+
+The logits produced by the model are divided by a temperature value (0.7). This controls the randomness of predictions. Lower temperature makes the model more deterministic and higher temperature increases diversity.
+
+4.2 Top-k Sampling
+
+Instead of sampling from the full vocabulary distribution, only the top k (k = 40) most probable tokens are retained. The remaining tokens are masked out. Sampling is then performed over this reduced distribution. This reduces noise and improves output quality.
